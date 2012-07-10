@@ -117,7 +117,9 @@ char* ltrim(char *in, const char sep);
 int select_read(const int fd, void *buf, const size_t buflen, const long d_sec, const long d_usec);
 int select_write(const int fd, const void *buf, const size_t buflen, const long d_sec, const long d_usec);
 
+void clock_monotonic(struct timespec *t);
 double clock_difftime(struct timespec *after, struct timespec *before);
+double clock_difftime_safe(struct timespec *after, struct timespec *before);
 
 /* Buffer sizes used for various functions */
 #define SMALLBUF	512

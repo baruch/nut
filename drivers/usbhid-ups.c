@@ -758,7 +758,7 @@ void upsdrv_updateinfo(void)
 	/* check for device availability to set datastale! */
 	if (hd == NULL) {
 		/* don't flood reconnection attempts */
-		if (clock_difftime(&now, &lastpoll) < poll_interval) {
+		if (clock_difftime_safe(&now, &lastpoll) < poll_interval) {
 			return;
 		}
 
@@ -818,7 +818,7 @@ void upsdrv_updateinfo(void)
 	status_init();
 
 	/* Do a full update (polling) every pollfreq or upon data change (ie setvar/instcmd) */
-	if (clock_difftime(&now, &lastpoll) > pollfreq || (data_has_changed == TRUE)) {
+	if (clock_difftime_safe(&now, &lastpoll) > pollfreq || (data_has_changed == TRUE)) {
 		upsdebugx(1, "Full update...");
 
 		alarm_init();

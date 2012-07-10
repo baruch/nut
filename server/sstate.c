@@ -182,7 +182,7 @@ int sstate_connect(upstype_t *ups)
 
 		/* rate-limit complaints - don't spam the syslog */
 		clock_monotonic(&now);
-		if (clock_difftime(&now, &ups->last_connfail) < SS_CONNFAIL_INT)
+		if (clock_difftime_safe(&now, &ups->last_connfail) < SS_CONNFAIL_INT)
 			return -1;
 
 		ups->last_connfail = now;
@@ -327,9 +327,9 @@ const cmdlist_t *sstate_getcmdlist(const upstype_t *ups)
 
 int sstate_dead(upstype_t *ups, int maxage)
 {
-	struct timespec now;
-	double	elapsed;
-        const double third_maxage = maxage/3.0;
+	struct timespec	now;
+	double		elapsed;
+        const double	third_maxage = maxage/3.0;
 
 	/* an unconnected ups is always dead */
 	if (ups->sock_fd < 0) {
@@ -345,10 +345,13 @@ int sstate_dead(upstype_t *ups, int maxage)
 		return 1;	/* dead */
 	}
 
+	/* We can't use clock_difftime_safe here since we want to carefully
+	 * check if the driver is indeed unresponsive
+	 */
 	elapsed = clock_difftime(&now, &ups->last_heard);
 
 	/* somewhere beyond a third of the maximum time - prod it to make it talk */
-	if ((elapsed > third_maxage) && (clock_difftime(&now, &ups->last_ping) > third_maxage))
+	if ((elapsed > third_maxage || elapsed < 0.0) && (clock_difftime_safe(&now, &ups->last_ping) > third_maxage))
 		sendping(ups);
 
 	if (elapsed > maxage) {

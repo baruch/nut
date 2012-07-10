@@ -23,6 +23,7 @@
 #include <syslog.h>
 #include <pwd.h>
 #include <grp.h>
+#include <values.h>
 
 /* the reason we define UPS_VERSION as a static string, rather than a
 	macro, is to make dependency tracking easier (only common.o depends
@@ -600,9 +601,10 @@ int select_write(const int fd, const void *buf, const size_t buflen, const long 
 	return write(fd, buf, buflen);
 }
 
+/* Attempt to retrieve a monotonic clock, do not trust this though, it may lie on various platforms! */
 void clock_monotonic(struct timespec *t)
 {
-	static bool     monotonic_works = true;
+	static int	monotonic_works = 1;
 	int             ret;
 
 	if (monotonic_works) {
@@ -610,7 +612,7 @@ void clock_monotonic(struct timespec *t)
 		if (ret != 0) {
 			if (errno == EINVAL) {
 				upslogx(LOG_WARNING, "Monotonic clock is not supported on this platform");
-				monotonic_works = false;
+				monotonic_works = 0;
 			} else {
 				fatal_with_errno(EXIT_FAILURE, "clock_gettime failed");
 			}
@@ -621,9 +623,19 @@ void clock_monotonic(struct timespec *t)
 	}
 }
 
+/* Similar to difftime(2), returns the time difference since 'before' until 'after' */
 double clock_difftime(struct timespec *after, struct timespec *before)
 {
         double diff = after->tv_sec - before->tv_sec;
         diff += (after->tv_nsec - before->tv_nsec) / 1000000000.0;
         return diff;
+}
+
+/* A non-monotonic clock safe difference, if the time moved backwards consider the difference as infinite. */
+double clock_difftime_safe(struct timespec *after, struct timespec *before)
+{
+	double diff = clock_difftime(after, before);
+	if (diff >= 0.0)
+		return diff;
+	return DBL_MAX;
 }
