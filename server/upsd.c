@@ -712,7 +712,7 @@ static void mainloop(void)
 
 		cnext = client->next;
 
-		if (clock_difftime(&client->last_heard, &now) > 60) {
+		if (clock_difftime(&now, &client->last_heard) > 60) {
 			/* shed clients after 1 minute of inactivity */
 			client_disconnect(client);
 			continue;

@@ -182,7 +182,7 @@ int sstate_connect(upstype_t *ups)
 
 		/* rate-limit complaints - don't spam the syslog */
 		clock_gettime(CLOCK_MONOTONIC, &now);
-		if (clock_difftime(&ups->last_connfail, &now) < SS_CONNFAIL_INT)
+		if (clock_difftime(&now, &ups->last_connfail) < SS_CONNFAIL_INT)
 			return -1;
 
 		ups->last_connfail = now;
@@ -345,10 +345,10 @@ int sstate_dead(upstype_t *ups, int maxage)
 		return 1;	/* dead */
 	}
 
-	elapsed = clock_difftime(&ups->last_heard, &now);
+	elapsed = clock_difftime(&now, &ups->last_heard);
 
 	/* somewhere beyond a third of the maximum time - prod it to make it talk */
-	if ((elapsed > third_maxage) && (clock_difftime(&ups->last_ping, &now) > third_maxage))
+	if ((elapsed > third_maxage) && (clock_difftime(&now, &ups->last_ping) > third_maxage))
 		sendping(ups);
 
 	if (elapsed > maxage) {

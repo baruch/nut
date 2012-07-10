@@ -145,7 +145,7 @@ static int refresh_report_buffer(reportbuf_t *rbuf, hid_dev_handle_t udev, HIDDa
 
         clock_gettime(CLOCK_MONOTONIC, &now);
 
-	if (clock_difftime(&rbuf->ts[id], &now) < age) {
+	if (clock_difftime(&now, &rbuf->ts[id]) < age) {
 		/* buffered report is still good; nothing to do */
 		upsdebug_hex(3, "Report[buf]", rbuf->data[id], rbuf->len[id]);
 		return 0;

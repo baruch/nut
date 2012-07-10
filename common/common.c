@@ -600,7 +600,7 @@ int select_write(const int fd, const void *buf, const size_t buflen, const long 
 	return write(fd, buf, buflen);
 }
 
-double clock_difftime(struct timespec *before, struct timespec *after)
+double clock_difftime(struct timespec *after, struct timespec *before)
 {
         double diff = after->tv_sec - before->tv_sec;
         diff += (after->tv_nsec - before->tv_nsec) / 1000000000.0;
