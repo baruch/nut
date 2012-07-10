@@ -151,7 +151,7 @@ static void sendping(upstype_t *ups)
 		return;
 	}
 
-	time(&ups->last_ping);
+        clock_gettime(CLOCK_MONOTONIC, &ups->last_ping);
 }
 
 /* interface */
@@ -176,13 +176,13 @@ int sstate_connect(upstype_t *ups)
 	ret = connect(fd, (struct sockaddr *) &sa, sizeof(sa));
 
 	if (ret < 0) {
-		time_t	now;
+		struct timespec now;
 
 		close(fd);
 
 		/* rate-limit complaints - don't spam the syslog */
-		time(&now);
-		if (difftime(now, ups->last_connfail) < SS_CONNFAIL_INT)
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		if (clock_difftime(&ups->last_connfail, &now) < SS_CONNFAIL_INT)
 			return -1;
 
 		ups->last_connfail = now;
@@ -223,7 +223,7 @@ int sstate_connect(upstype_t *ups)
 	ups->stale = 0;
 
 	/* now is the last time we heard something from the driver */
-	time(&ups->last_heard);
+	clock_gettime(CLOCK_MONOTONIC, &ups->last_heard);
 
 	/* set ups.status to "WAIT" while waiting for the driver response to dumpcmd */
 	state_setinfo(&ups->inforoot, "ups.status", "WAIT");
@@ -280,7 +280,7 @@ void sstate_readline(upstype_t *ups)
 		case 1:
 			/* set the 'last heard' time to now for later staleness checks */
 			if (parse_args(ups, ups->sock_ctx.numargs, ups->sock_ctx.arglist)) {
-			        time(&ups->last_heard);
+			        clock_gettime(CLOCK_MONOTONIC, &ups->last_heard);
 			}
 			continue;
 
@@ -327,8 +327,9 @@ const cmdlist_t *sstate_getcmdlist(const upstype_t *ups)
 
 int sstate_dead(upstype_t *ups, int maxage)
 {
-	time_t	now;
+	struct timespec now;
 	double	elapsed;
+        const double third_maxage = maxage/3.0;
 
 	/* an unconnected ups is always dead */
 	if (ups->sock_fd < 0) {
@@ -336,7 +337,7 @@ int sstate_dead(upstype_t *ups, int maxage)
 		return 1;	/* dead */
 	}
 
-	time(&now);
+	clock_gettime(CLOCK_MONOTONIC, &now);
 
 	/* ignore DATAOK/DATASTALE unless the dump is done */
 	if ((ups->dumpdone) && (!ups->data_ok)) {
@@ -344,10 +345,10 @@ int sstate_dead(upstype_t *ups, int maxage)
 		return 1;	/* dead */
 	}
 
-	elapsed = difftime(now, ups->last_heard);
+	elapsed = clock_difftime(&ups->last_heard, &now);
 
 	/* somewhere beyond a third of the maximum time - prod it to make it talk */
-	if ((elapsed > (maxage / 3)) && (difftime(now, ups->last_ping) > (maxage / 3)))
+	if ((elapsed > third_maxage) && (clock_difftime(&ups->last_ping, &now) > third_maxage))
 		sendping(ups);
 
 	if (elapsed > maxage) {

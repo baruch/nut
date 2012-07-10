@@ -108,7 +108,7 @@ bool_t use_interrupt_pipe = TRUE;
 #else
 bool_t use_interrupt_pipe = FALSE;
 #endif
-static time_t lastpoll; /* Timestamp the last polling */
+static struct timespec lastpoll; /* Timestamp the last polling */
 hid_dev_handle_t udev;
 
 /* support functions */
@@ -749,16 +749,16 @@ void upsdrv_updateinfo(void)
 	HIDData_t	*event[MAX_EVENT_NUM];
 	int		i, evtCount;
 	double		value;
-	time_t		now;
+	struct timespec now;
 
 	upsdebugx(1, "upsdrv_updateinfo...");
 
-	time(&now);
+	clock_gettime(CLOCK_MONOTONIC, &now);
 
 	/* check for device availability to set datastale! */
 	if (hd == NULL) {
 		/* don't flood reconnection attempts */
-		if (now < (int)(lastpoll + poll_interval)) {
+		if (clock_difftime(&lastpoll, &now) < poll_interval) {
 			return;
 		}
 
@@ -818,7 +818,7 @@ void upsdrv_updateinfo(void)
 	status_init();
 
 	/* Do a full update (polling) every pollfreq or upon data change (ie setvar/instcmd) */
-	if ((now > (lastpoll + pollfreq)) || (data_has_changed == TRUE)) {
+	if (clock_difftime(&lastpoll, &now) > pollfreq || (data_has_changed == TRUE)) {
 		upsdebugx(1, "Full update...");
 
 		alarm_init();
@@ -869,7 +869,7 @@ void upsdrv_initinfo(void)
 		use_interrupt_pipe = FALSE;
 	}
 
-	time(&lastpoll);
+	clock_gettime(CLOCK_MONOTONIC, &lastpoll);
 
 	/* install handlers */
 	upsh.setvar = setvar;

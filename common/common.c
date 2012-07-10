@@ -599,3 +599,32 @@ int select_write(const int fd, const void *buf, const size_t buflen, const long 
 
 	return write(fd, buf, buflen);
 }
+
+/* Compare two timespec's (from clock_gettime) and tell their order */
+int clock_compare(struct timespec *before, struct timespec *after)
+{
+        if (after->tv_sec > before->tv_sec)
+                return 1;
+        else if (after->tv_sec < before->tv_sec)
+                return -1;
+        else if (after->tv_nsec > before->tv_nsec)
+                return 1;
+        else if (after->tv_nsec < before->tv_nsec)
+                return -1;
+        return 0;
+}
+
+/* Compare two timespec's (from clock_gettime) with an offset on one and tell their order */
+int clock_compare_offset(struct timespec *before, struct timespec *after, int offset_sec)
+{
+        struct timespec tmp = *after;
+        tmp.tv_sec += offset_sec;
+        return clock_compare(before, &tmp);
+}
+
+double clock_difftime(struct timespec *before, struct timespec *after)
+{
+        double diff = after->tv_sec - before->tv_sec;
+        diff += (after->tv_nsec - before->tv_nsec) / 1000000000.0;
+        return diff;
+}

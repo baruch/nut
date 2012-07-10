@@ -79,7 +79,7 @@ void net_logout(nut_ctype_t *client, int numarg, const char **arg)
 
 	sendback(client, "OK Goodbye\n");
 
-	client->last_heard = 0;
+	client->last_heard = (struct timespec){0,0};
 }
 
 /* MASTER <upsname> */

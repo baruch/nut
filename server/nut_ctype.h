@@ -34,7 +34,7 @@
 typedef struct nut_ctype_s {
 	char	*addr;
 	int	sock_fd;
-	time_t	last_heard;
+	struct timespec last_heard;
 	char	*loginups;
 	char	*password;
 	char	*username;

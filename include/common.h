@@ -117,6 +117,10 @@ char* ltrim(char *in, const char sep);
 int select_read(const int fd, void *buf, const size_t buflen, const long d_sec, const long d_usec);
 int select_write(const int fd, const void *buf, const size_t buflen, const long d_sec, const long d_usec);
 
+int clock_compare_offset(struct timespec *before, struct timespec *after, int offset_sec);
+int clock_compare(struct timespec *before, struct timespec *after);
+double clock_difftime(struct timespec *before, struct timespec *after);
+
 /* Buffer sizes used for various functions */
 #define SMALLBUF	512
 #define LARGEBUF	1024

@@ -34,9 +34,9 @@ typedef struct upstype_s {
 	int			stale;
 	int			dumpdone;
 	int			data_ok;
-	time_t			last_heard;
-	time_t			last_ping;
-	time_t			last_connfail;
+	struct timespec		last_heard;
+	struct timespec		last_ping;
+	struct timespec		last_connfail;
 	PCONF_CTX_t		sock_ctx;
 	struct st_tree_s	*inforoot;
 	struct cmdlist_s	*cmdlist;

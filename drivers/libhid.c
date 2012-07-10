@@ -141,8 +141,11 @@ static int refresh_report_buffer(reportbuf_t *rbuf, hid_dev_handle_t udev, HIDDa
 {
 	int	id = pData->ReportID;
 	int	r;
+        struct timespec now;
 
-	if (rbuf->ts[id] + age > time(NULL)) {
+        clock_gettime(CLOCK_MONOTONIC, &now);
+
+	if (clock_difftime(&rbuf->ts[id], &now) < age) {
 		/* buffered report is still good; nothing to do */
 		upsdebug_hex(3, "Report[buf]", rbuf->data[id], rbuf->len[id]);
 		return 0;
@@ -161,7 +164,7 @@ static int refresh_report_buffer(reportbuf_t *rbuf, hid_dev_handle_t udev, HIDDa
 	}
 
 	/* have (valid) report */
-	time(&rbuf->ts[id]);
+	rbuf->ts[id] = now;
 
 	return 0;
 }
@@ -203,7 +206,7 @@ static int set_item_buffered(reportbuf_t *rbuf, hid_dev_handle_t udev, HIDData_t
 	upsdebug_hex(3, "Report[set]", rbuf->data[id], rbuf->len[id]);
 
 	/* expire report */
-	rbuf->ts[id] = 0;
+	rbuf->ts[id] = (struct timespec){0,0};
 
 	return 0;
 }
@@ -227,7 +230,7 @@ static int file_report_buffer(reportbuf_t *rbuf, unsigned char *buf, int buflen)
 	}
 
 	/* have (valid) report */
-	time(&rbuf->ts[id]);
+	clock_gettime(CLOCK_MONOTONIC, &rbuf->ts[id]);
 
 	return 0;
 }
@@ -445,7 +448,7 @@ int HIDSetDataValue(hid_dev_handle_t udev, HIDData_t *hiddata, double Value)
 
 	/* flush the report buffer (data may have changed) */
 	for (i=0; i<256; i++) {
-		reportbuf->ts[i] = 0;
+		reportbuf->ts[i] = (struct timespec){0,0};
 	}
 	
 	upsdebugx(4, "Set report succeeded");
