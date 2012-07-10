@@ -143,7 +143,7 @@ static int refresh_report_buffer(reportbuf_t *rbuf, hid_dev_handle_t udev, HIDDa
 	int	r;
         struct timespec now;
 
-        clock_gettime(CLOCK_MONOTONIC, &now);
+        clock_monotonic(&now);
 
 	if (clock_difftime(&now, &rbuf->ts[id]) < age) {
 		/* buffered report is still good; nothing to do */
@@ -230,7 +230,7 @@ static int file_report_buffer(reportbuf_t *rbuf, unsigned char *buf, int buflen)
 	}
 
 	/* have (valid) report */
-	clock_gettime(CLOCK_MONOTONIC, &rbuf->ts[id]);
+	clock_monotonic(&rbuf->ts[id]);
 
 	return 0;
 }

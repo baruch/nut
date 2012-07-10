@@ -473,7 +473,7 @@ static void client_connect(stype_t *server)
 
 	client->sock_fd = fd;
 
-	clock_gettime(CLOCK_MONOTONIC, &client->last_heard);
+	clock_monotonic(&client->last_heard);
 
 	client->addr = xstrdup(inet_ntopW(&csock));
 
@@ -528,7 +528,7 @@ static void client_readline(nut_ctype_t *client)
 		switch (pconf_char(&client->ctx, buf[i]))
 		{
 		case 1:
-			clock_gettime(CLOCK_MONOTONIC, &client->last_heard);	/* command received */
+			clock_monotonic(&client->last_heard);	/* command received */
 			parse_net(client);
 			continue;
 
@@ -674,7 +674,7 @@ static void mainloop(void)
 	stype_t		*server;
 	struct timespec now;
 
-	clock_gettime(CLOCK_MONOTONIC, &now);
+	clock_monotonic(&now);
 
 	if (reload_flag) {
 		conf_reload();

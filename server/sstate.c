@@ -151,7 +151,7 @@ static void sendping(upstype_t *ups)
 		return;
 	}
 
-        clock_gettime(CLOCK_MONOTONIC, &ups->last_ping);
+        clock_monotonic(&ups->last_ping);
 }
 
 /* interface */
@@ -181,7 +181,7 @@ int sstate_connect(upstype_t *ups)
 		close(fd);
 
 		/* rate-limit complaints - don't spam the syslog */
-		clock_gettime(CLOCK_MONOTONIC, &now);
+		clock_monotonic(&now);
 		if (clock_difftime(&now, &ups->last_connfail) < SS_CONNFAIL_INT)
 			return -1;
 
@@ -223,7 +223,7 @@ int sstate_connect(upstype_t *ups)
 	ups->stale = 0;
 
 	/* now is the last time we heard something from the driver */
-	clock_gettime(CLOCK_MONOTONIC, &ups->last_heard);
+	clock_monotonic(&ups->last_heard);
 
 	/* set ups.status to "WAIT" while waiting for the driver response to dumpcmd */
 	state_setinfo(&ups->inforoot, "ups.status", "WAIT");
@@ -280,7 +280,7 @@ void sstate_readline(upstype_t *ups)
 		case 1:
 			/* set the 'last heard' time to now for later staleness checks */
 			if (parse_args(ups, ups->sock_ctx.numargs, ups->sock_ctx.arglist)) {
-			        clock_gettime(CLOCK_MONOTONIC, &ups->last_heard);
+			        clock_monotonic(&ups->last_heard);
 			}
 			continue;
 
@@ -337,7 +337,7 @@ int sstate_dead(upstype_t *ups, int maxage)
 		return 1;	/* dead */
 	}
 
-	clock_gettime(CLOCK_MONOTONIC, &now);
+	clock_monotonic(&now);
 
 	/* ignore DATAOK/DATASTALE unless the dump is done */
 	if ((ups->dumpdone) && (!ups->data_ok)) {

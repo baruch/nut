@@ -600,6 +600,27 @@ int select_write(const int fd, const void *buf, const size_t buflen, const long 
 	return write(fd, buf, buflen);
 }
 
+void clock_monotonic(struct timespec *t)
+{
+	static bool     monotonic_works = true;
+	int             ret;
+
+	if (monotonic_works) {
+		ret = clock_gettime(CLOCK_MONOTONIC, t);
+		if (ret != 0) {
+			if (errno == EINVAL) {
+				upslogx(LOG_WARNING, "Monotonic clock is not supported on this platform");
+				monotonic_works = false;
+			} else {
+				fatal_with_errno(EXIT_FAILURE, "clock_gettime failed");
+			}
+		}
+	} else {
+		t->tv_sec = time(NULL);
+		t->tv_nsec = 0;
+	}
+}
+
 double clock_difftime(struct timespec *after, struct timespec *before)
 {
         double diff = after->tv_sec - before->tv_sec;

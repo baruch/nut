@@ -753,7 +753,7 @@ void upsdrv_updateinfo(void)
 
 	upsdebugx(1, "upsdrv_updateinfo...");
 
-	clock_gettime(CLOCK_MONOTONIC, &now);
+	clock_monotonic(&now);
 
 	/* check for device availability to set datastale! */
 	if (hd == NULL) {
@@ -869,7 +869,7 @@ void upsdrv_initinfo(void)
 		use_interrupt_pipe = FALSE;
 	}
 
-	clock_gettime(CLOCK_MONOTONIC, &lastpoll);
+	clock_monotonic(&lastpoll);
 
 	/* install handlers */
 	upsh.setvar = setvar;

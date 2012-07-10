@@ -53,7 +53,7 @@ static void ups_create(const char *fn, const char *name, const char *desc)
 	temp->sock_fd = sstate_connect(temp);
 
 	/* preload this to the current time to avoid false staleness */
-	clock_gettime(CLOCK_MONOTONIC, &temp->last_heard);
+	clock_monotonic(&temp->last_heard);
 
 	temp->next = firstups;
 	firstups = temp;
